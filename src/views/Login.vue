@@ -31,32 +31,23 @@
 <script>
 import Modal from '@/components/Modal.vue';
 
-import { initFbsdk } from '@/config/fb.js';
+import { accountService } from '@/services';
+import router from '@/router';
 
 export default {
   name: 'Home',
   components: {
     Modal,
   },
-  async mounted() {
-    await initFbsdk();
-  },
-  watch: {
-    'window.FB.getLoginStatus'(a) {
-      console.log(a);
-    },
-  },
-  computed: {
-    /* checkFbStatus() {
-      window.FB.getLoginStatus(function(response) {
-        return response;
-      });
-    }, */
+  created() {
+    // redirect to home if already logged in
+    if (accountService.accountValue) {
+      console.log('[ACC value]', accountService.accountValue);
+      router.push('/');
+    }
   },
   methods: {
-    fbLogin() {
-      console.log(window.FB);
-    },
+    fbLogin: accountService.login,
   },
 };
 </script>

@@ -1,26 +1,25 @@
 import Vue from 'vue';
 import VueRouter from 'vue-router';
-import Login from '../views/Login.vue';
+
+import Home from '@/views/Home';
+// import EditAccount from '@/home/EditAccount';
+import Login from '@/views/Login.vue';
+import { authGuard } from '@/helpers';
 
 Vue.use(VueRouter);
 
 const routes = [
-  {
-    path: '/',
-    name: 'Login',
-    component: Login,
-  },
-  {
-    path: '/about',
-    name: 'About',
-    component: () => import('../views/About.vue'),
-  },
+  { path: '/', component: Home, beforeEnter: authGuard },
+  // { path: '/edit/:id', component: EditAccount, beforeEnter: authGuard },
+  { path: '/login', component: Login },
+
+  // redirect home
+  { path: '*', redirect: '/' },
 ];
 
-const router = new VueRouter({
+export default new VueRouter({
   mode: 'history',
   base: process.env.BASE_URL,
+  linkActiveClass: 'active',
   routes,
 });
-
-export default router;

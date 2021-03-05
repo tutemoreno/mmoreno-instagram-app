@@ -4,12 +4,17 @@ import router from './router';
 import store from './store';
 import axios from 'axios';
 
+import { initFacebookSdk, jwtInterceptor, errorInterceptor } from './helpers';
+
 Vue.config.productionTip = false;
 
 Vue.use(axios);
 
-new Vue({
-  router,
-  store,
-  render: (h) => h(App),
-}).$mount('#app');
+initFacebookSdk().then(start);
+
+function start() {
+  new Vue({
+    router,
+    render: h => h(App),
+  }).$mount('#app');
+}
