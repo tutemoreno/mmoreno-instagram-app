@@ -14,16 +14,6 @@
     </template>
     <template v-slot:footer>
       <button @click="fbLogin">Sign in with facebook</button>
-
-      <div
-        class="fb-login-button"
-        data-width=""
-        data-size="medium"
-        data-button-type="login_with"
-        data-layout="default"
-        data-auto-logout-link="false"
-        data-use-continue-as="true"
-      ></div>
     </template>
   </Modal>
 </template>

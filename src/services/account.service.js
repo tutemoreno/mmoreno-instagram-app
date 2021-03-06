@@ -21,6 +21,7 @@ export const accountService = {
 };
 
 async function login() {
+  console.log('[API]', process.env.VUE_APP_API_URL);
   // login with facebook then authenticate with the API to get a JWT auth token
   // eslint-disable-next-line no-undef
   const { authResponse } = await new Promise(FB.login);
