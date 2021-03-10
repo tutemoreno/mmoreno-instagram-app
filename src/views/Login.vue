@@ -1,6 +1,6 @@
 <template>
   <div>
-    <Modal id="signInModal" data-bs-backdrop="static" data-bs-keyboard="false">
+    <Modal id="signInModal">
       <template #header>
         <h5 class="modal-title mx-auto" id="exampleModalLabel">
           Login
@@ -133,6 +133,11 @@ export default {
   },
   mounted() {
     initFbsdk();
+    $('#signInModal').modal({
+      backdrop: 'static',
+      keyboard: false,
+      focus: true,
+    });
     $('#signInModal').modal('show');
   },
   methods: {
@@ -163,7 +168,7 @@ export default {
     loginWithFacebook() {
       window.FB.login(response => {
         var userInfo = {
-          loginType: 'fb',
+          loginType: 'facebook',
           fb: response,
         };
         console.log('fb response', response);
