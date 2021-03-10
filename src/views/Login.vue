@@ -73,13 +73,21 @@
             </div>
 
             <div class="row mb-3">
-              <button type="button" class="btn btn-primary col-8 mx-auto">
+              <button
+                type="button"
+                class="btn btn-primary col-8 mx-auto"
+                @click="loginWithFacebook"
+              >
                 Sign in with Facebook
               </button>
             </div>
 
             <div class="row mb-3">
-              <button type="button" class="btn btn-danger col-8 mx-auto">
+              <button
+                type="button"
+                class="btn btn-danger col-8 mx-auto"
+                @click="loginWithGoogle"
+              >
                 Sign in with Google
               </button>
             </div>
@@ -102,9 +110,9 @@
 
 <script>
 import Modal from '@/components/Modal.vue';
+import { initFbsdk } from '@/config/facebook_oAuth.js';
 
 import { accountService } from '@/services';
-import router from '@/router';
 
 export default {
   name: 'Home',
@@ -120,16 +128,48 @@ export default {
     // redirect to home if already logged in
     if (accountService.accountValue) {
       console.log('[ACC value]', accountService.accountValue);
-      router.push('/');
+      this.$router.push('/');
     }
   },
   mounted() {
+    initFbsdk();
     $('#signInModal').modal('show');
   },
   methods: {
     fbLogin: accountService.login,
     goToSignUp() {
       this.signUpMode = true;
+    },
+    loginWithGoogle() {
+      this.$gAuth
+        .signIn()
+        .then(GoogleUser => {
+          // on success do something
+          console.log('GoogleUser', GoogleUser);
+          console.log('getId', GoogleUser.getId());
+          console.log('getBasicProfile', GoogleUser.getBasicProfile());
+          console.log('getAuthResponse', GoogleUser.getAuthResponse());
+          var userInfo = {
+            loginType: 'google',
+            google: GoogleUser,
+          };
+          this.$store.commit('setLoginUser', userInfo);
+          this.$router.push('/home');
+        })
+        .catch(error => {
+          console.log('error', error);
+        });
+    },
+    loginWithFacebook() {
+      window.FB.login(response => {
+        var userInfo = {
+          loginType: 'fb',
+          fb: response,
+        };
+        console.log('fb response', response);
+        this.$store.commit('setLoginUser', userInfo);
+        this.$router.push('/home');
+      }, this.params);
     },
   },
 };

@@ -11,7 +11,7 @@ Vue.use(VueRouter);
 const routes = [
   { path: '/', component: Home, beforeEnter: authGuard },
   // { path: '/edit/:id', component: EditAccount, beforeEnter: authGuard },
-  { path: '/login', component: Home },
+  { path: '/login', component: Login },
 
   // redirect home
   { path: '*', redirect: '/' },

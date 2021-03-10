@@ -46,7 +46,7 @@
             <div class="col-12 mb-3">
               <textarea
                 class="form-control"
-                id="exampleFormControlTextarea1"
+                v-model="description"
                 placeholder="Description"
                 style="height: 100%"
               ></textarea>
@@ -88,6 +88,7 @@ export default {
     return {
       file: null,
       uploadedFileUrl: null,
+      description: null,
       posts: [
         {
           id: 1,
@@ -164,6 +165,7 @@ export default {
       const formData = new FormData();
 
       formData.append('file', this.file);
+      formData.append('description', this.description);
 
       try {
         const {
