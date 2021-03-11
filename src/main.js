@@ -3,7 +3,6 @@ import App from './App.vue';
 import router from './router';
 import store from './store';
 
-//import { initFacebookSdk, jwtInterceptor, errorInterceptor } from './helpers';
 import jQuery from 'jquery';
 window.$ = jQuery;
 
@@ -19,8 +18,6 @@ const gauthOption = {
   prompt: 'select_account',
 };
 Vue.use(GoogleAuth, gauthOption);
-
-//initFacebookSdk().then(start);
 
 Vue.config.productionTip = false;
 

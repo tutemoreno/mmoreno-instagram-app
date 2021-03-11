@@ -1,5 +1,7 @@
 import Vue from 'vue';
 import Vuex from 'vuex';
+import axios from 'axios';
+
 import { setStore, getStore } from '@/config/utils';
 
 Vue.use(Vuex);
@@ -16,7 +18,18 @@ export default new Vuex.Store({
       setStore('user', user);
     },
   },
-  actions: {},
+  actions: {
+    async signIn({ commit }, data) {
+      const response = await axios({
+        method: 'post',
+        baseURL: process.env.VUE_APP_SERVER_URL,
+        url: '/accounts/signIn',
+        data,
+      });
+
+      console.log(response);
+    },
+  },
   getters: {
     getLoginUserInfo(state) {
       return state.loginUser;

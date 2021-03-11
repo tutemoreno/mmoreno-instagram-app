@@ -3,7 +3,7 @@
     <Modal id="signInModal">
       <template #header>
         <h5 class="modal-title mx-auto" id="exampleModalLabel">
-          Login
+          {{ signUpMode ? 'Create Account' : 'Login' }}
         </h5>
       </template>
       <template #body>
@@ -109,10 +109,9 @@
 </template>
 
 <script>
+import { mapActions } from 'vuex';
 import Modal from '@/components/Modal.vue';
 import { initFbsdk } from '@/config/facebook_oAuth.js';
-
-import { accountService } from '@/services';
 
 export default {
   name: 'Home',
@@ -124,13 +123,6 @@ export default {
       signUpMode: false,
     };
   },
-  created() {
-    // redirect to home if already logged in
-    if (accountService.accountValue) {
-      console.log('[ACC value]', accountService.accountValue);
-      this.$router.push('/');
-    }
-  },
   mounted() {
     initFbsdk();
     $('#signInModal').modal({
@@ -141,7 +133,7 @@ export default {
     $('#signInModal').modal('show');
   },
   methods: {
-    fbLogin: accountService.login,
+    ...mapActions(['signIn']),
     goToSignUp() {
       this.signUpMode = true;
     },
@@ -172,6 +164,10 @@ export default {
           fb: response,
         };
         console.log('fb response', response);
+        const {
+          authResponse: { accessToken, userID },
+        } = response;
+        this.signIn({ token: accessToken, userID, accessMode: 'facebook' });
         this.$store.commit('setLoginUser', userInfo);
         this.$router.push('/home');
       }, this.params);
@@ -179,12 +175,3 @@ export default {
   },
 };
 </script>
-
-<style>
-body {
-  background: gray;
-}
-input {
-  margin: 10px;
-}
-</style>

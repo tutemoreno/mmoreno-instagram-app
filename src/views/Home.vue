@@ -172,7 +172,7 @@ export default {
           data: { file },
         } = await axios({
           headers: { 'Content-Type': 'multipart/form-data' },
-          baseURL: process.env.VUE_APP_API_URL,
+          baseURL: process.env.VUE_APP_SERVER_URL,
           method: 'post',
           url: 'uploads',
           data: formData,
