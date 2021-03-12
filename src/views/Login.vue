@@ -2,9 +2,16 @@
   <div>
     <Modal id="signInModal">
       <template #header>
-        <h5 class="modal-title mx-auto" id="exampleModalLabel">
-          {{ signUpMode ? 'Create Account' : 'Login' }}
-        </h5>
+        <div class="container">
+          <div v-if="showAlert" class="alert alert-danger" role="alert">
+            Passwords do not match!
+          </div>
+          <div class="row">
+            <h5 class="modal-title mx-auto" id="exampleModalLabel">
+              {{ signUpMode ? 'Create Account' : 'Login' }}
+            </h5>
+          </div>
+        </div>
       </template>
       <template #body>
         <form class="container">
@@ -14,6 +21,7 @@
                 type="text"
                 class="form-control"
                 id="username"
+                v-model.trim="username"
                 placeholder="Username"
                 aria-describedby="emailHelp"
               />
@@ -25,6 +33,7 @@
                 type="password"
                 class="form-control"
                 id="password"
+                v-model.trim="password"
                 placeholder="Password"
               />
             </div>
@@ -36,7 +45,8 @@
                 <input
                   type="password"
                   class="form-control"
-                  id="passwordConfirm"
+                  id="confirmPassword"
+                  v-model.trim="confirmPassword"
                   placeholder="Confirm password"
                 />
               </div>
@@ -45,7 +55,7 @@
               <button
                 type="button"
                 class="btn btn-dark col-3 mx-5"
-                @click="goToSignUp"
+                @click="signUpWithServer"
               >
                 Sign up
               </button>
@@ -61,6 +71,7 @@
                   class="form-check-input"
                   type="checkbox"
                   id="rememberMe"
+                  v-model="rememberMe"
                 />
                 <label class="form-check-label" for="rememberMe">
                   Remember me
@@ -76,7 +87,7 @@
               <button
                 type="button"
                 class="btn btn-primary col-8 mx-auto"
-                @click="loginWithFacebook"
+                @click="signInWithFacebook"
               >
                 Sign in with Facebook
               </button>
@@ -86,7 +97,7 @@
               <button
                 type="button"
                 class="btn btn-danger col-8 mx-auto"
-                @click="loginWithGoogle"
+                @click="signInWithGoogle"
               >
                 Sign in with Google
               </button>
@@ -96,7 +107,7 @@
               <button
                 type="button"
                 class="btn btn-light border-secondary col-3 mx-auto"
-                @click="goToSignUp"
+                @click="signUpMode = true"
               >
                 Sign up
               </button>
@@ -109,9 +120,9 @@
 </template>
 
 <script>
-import { mapActions } from 'vuex';
+import { mapMutations } from 'vuex';
+import axios from 'axios';
 import Modal from '@/components/Modal.vue';
-import { initFbsdk } from '@/config/facebook_oAuth.js';
 
 export default {
   name: 'Home',
@@ -120,11 +131,15 @@ export default {
   },
   data() {
     return {
+      username: null,
+      password: null,
+      confirmPassword: null,
+      rememberMe: false,
       signUpMode: false,
+      showAlert: false,
     };
   },
   mounted() {
-    initFbsdk();
     $('#signInModal').modal({
       backdrop: 'static',
       keyboard: false,
@@ -133,43 +148,72 @@ export default {
     $('#signInModal').modal('show');
   },
   methods: {
-    ...mapActions(['signIn']),
-    goToSignUp() {
-      this.signUpMode = true;
+    ...mapMutations(['setUserInfo']),
+    async signUpWithServer() {
+      const { username, password, confirmPassword } = this;
+
+      if (password != confirmPassword) return (this.showAlert = true);
+
+      this.showAlert = false;
+
+      const response = await axios({
+        method: 'post',
+        baseURL: process.env.VUE_APP_SERVER_URL,
+        url: '/accounts/server/signUp',
+        data: { username, password },
+      });
+
+      const { userId, token } = response;
+
+      this.setUserInfo({
+        accessId: userId,
+        accessToken: token,
+        accessMode: 'SERVER',
+      });
     },
-    loginWithGoogle() {
+    async signInWithServer() {
+      const { username, password } = this;
+      const response = await axios({
+        method: 'post',
+        baseURL: process.env.VUE_APP_SERVER_URL,
+        url: '/accounts/server/signIn',
+        data: { username, password },
+      });
+
+      const { userId, token } = response;
+
+      this.setUserInfo({
+        accessId: userId,
+        accessToken: token,
+        accessMode: 'SERVER',
+      });
+    },
+    signInWithGoogle() {
       this.$gAuth
         .signIn()
         .then(GoogleUser => {
-          // on success do something
-          console.log('GoogleUser', GoogleUser);
-          console.log('getId', GoogleUser.getId());
-          console.log('getBasicProfile', GoogleUser.getBasicProfile());
-          console.log('getAuthResponse', GoogleUser.getAuthResponse());
-          var userInfo = {
-            loginType: 'google',
-            google: GoogleUser,
-          };
-          this.$store.commit('setLoginUser', userInfo);
-          this.$router.push('/home');
+          console.log(GoogleUser.getId());
+          this.setUserInfo({
+            accessId: GoogleUser.getId(),
+            accessToken: GoogleUser.getAuthResponse().access_token,
+            accessMode: 'GOOGLE',
+          });
         })
         .catch(error => {
           console.log('error', error);
         });
     },
-    loginWithFacebook() {
+    signInWithFacebook() {
       window.FB.login(response => {
-        var userInfo = {
-          loginType: 'facebook',
-          fb: response,
-        };
-        console.log('fb response', response);
         const {
           authResponse: { accessToken, userID },
         } = response;
-        this.signIn({ token: accessToken, userID, accessMode: 'facebook' });
-        this.$store.commit('setLoginUser', userInfo);
-        this.$router.push('/home');
+
+        this.setUserInfo({
+          accessId: userID,
+          accessToken,
+          accessMode: 'FACEBOOK',
+        });
       }, this.params);
     },
   },

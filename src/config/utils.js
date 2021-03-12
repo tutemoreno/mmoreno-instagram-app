@@ -3,17 +3,17 @@ export const setStore = (name, content) => {
   if (typeof content !== 'string') {
     content = JSON.stringify(content);
   }
-  return window.localStorage.setItem(name, content);
+  return localStorage.setItem(name, content);
 };
 
 export const getStore = name => {
   if (!name) return;
-  return JSON.parse(window.localStorage.getItem(name));
+  return JSON.parse(localStorage.getItem(name));
 };
 
 export const removeItem = name => {
   if (!name) return;
-  return window.localStorage.removeItem(name);
+  return localStorage.removeItem(name);
 };
 
 export const isValidEmail = value => {

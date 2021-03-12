@@ -1,25 +1,26 @@
 import Vue from 'vue';
 import Vuex from 'vuex';
 import axios from 'axios';
+import router from '@/router';
 
-import { setStore, getStore } from '@/config/utils';
+import { getStore, setStore } from '@/config/utils';
 
 Vue.use(Vuex);
 
-const user = getStore('user');
-
 export default new Vuex.Store({
   state: {
-    loginUser: user,
+    loginUser: localStorage.getItem('mmoreno-app-user'),
   },
   mutations: {
-    setLoginUser(state, user) {
-      state.loginUser = user;
-      setStore('user', user);
+    setUserInfo(state, user) {
+      setStore('mmoreno-app-user', user);
+      router.push('/home');
     },
   },
   actions: {
-    async signIn({ commit }, data) {
+    async signIn(data) {
+      console.log('GGGGGGG');
+
       const response = await axios({
         method: 'post',
         baseURL: process.env.VUE_APP_SERVER_URL,
@@ -31,8 +32,8 @@ export default new Vuex.Store({
     },
   },
   getters: {
-    getLoginUserInfo(state) {
-      return state.loginUser;
+    getUserInfo() {
+      return JSON.parse(localStorage.getItem('mmoreno-app-user'));
     },
   },
 });
