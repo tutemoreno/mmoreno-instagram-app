@@ -24,43 +24,13 @@ const router = new VueRouter({
 });
 
 router.beforeEach((to, from, next) => {
-  // eslint-disable-next-line no-undef
-  FB.getLoginStatus(function(response) {
-    console.log(response);
-    loggedIn = response.status == 'connected';
-  });
-  const authRequired = to.path !== '/login';
+  const loggedIn = getStore('mmoreno-app-user');
 
-  if (!authRequired) return next();
-  const userInfo = getStore('mmoreno-app-user');
-  console.log('beforeEach', userInfo);
-  let loggedIn;
-  if (userInfo) {
-    switch (userInfo.accessMode) {
-      case 'SERVER':
-        break;
-
-      case 'FACEBOOK':
-        // eslint-disable-next-line no-undef
-        // FB.logout(function(response) {
-        //   // Person is now logged out
-        // });
-
-        // eslint-disable-next-line no-undef
-        FB.getLoginStatus(function(response) {
-          console.log(response);
-          loggedIn = response.status == 'connected';
-        });
-        break;
-
-      case 'GOOGLE':
-        break;
-      default:
-        break;
-    }
+  if (to.path == '/login') {
+    if (loggedIn) return next('/');
+  } else {
+    if (!loggedIn) return next('/login');
   }
-
-  if (!loggedIn) return next('/login');
 
   next();
 });

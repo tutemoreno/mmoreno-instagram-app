@@ -3,18 +3,22 @@
     <Modal id="signInModal">
       <template #header>
         <div class="container">
-          <div v-if="showAlert" class="alert alert-danger" role="alert">
-            Passwords do not match!
+          <div
+            v-if="!!getLoginNotification"
+            class="alert alert-danger"
+            role="alert"
+          >
+            {{ getLoginNotification }}
           </div>
           <div class="row">
             <h5 class="modal-title mx-auto" id="exampleModalLabel">
-              {{ signUpMode ? 'Create Account' : 'Login' }}
+              {{ getSignUpMode ? 'Create Account' : 'Login' }}
             </h5>
           </div>
         </div>
       </template>
       <template #body>
-        <form class="container">
+        <form class="container" id="loginForm">
           <div class="row mb-3">
             <div class="col">
               <input
@@ -24,6 +28,11 @@
                 v-model.trim="username"
                 placeholder="Username"
                 aria-describedby="emailHelp"
+                @change="
+                  e => {
+                    getSignUpMode ? checkIfAlreadyExists(e.target.value) : null;
+                  }
+                "
               />
             </div>
           </div>
@@ -39,7 +48,7 @@
             </div>
           </div>
 
-          <template v-if="signUpMode">
+          <template v-if="getSignUpMode">
             <div class="row mb-3">
               <div class="col">
                 <input
@@ -55,6 +64,7 @@
               <button
                 type="button"
                 class="btn btn-dark col-3 mx-5"
+                :disabled="!!getLoginNotification"
                 @click="signUpWithServer"
               >
                 Sign up
@@ -78,7 +88,11 @@
                 </label>
               </div>
 
-              <button type="button" class="btn btn-dark col-3">
+              <button
+                type="button"
+                class="btn btn-dark col-3"
+                @click="signInWithServer"
+              >
                 Sign in
               </button>
             </div>
@@ -107,7 +121,7 @@
               <button
                 type="button"
                 class="btn btn-light border-secondary col-3 mx-auto"
-                @click="signUpMode = true"
+                @click="setSignUpMode(true)"
               >
                 Sign up
               </button>
@@ -120,7 +134,7 @@
 </template>
 
 <script>
-import { mapMutations } from 'vuex';
+import { mapMutations, mapActions, mapGetters } from 'vuex';
 import axios from 'axios';
 import Modal from '@/components/Modal.vue';
 
@@ -147,56 +161,68 @@ export default {
     });
     $('#signInModal').modal('show');
   },
+  computed: {
+    ...mapGetters('accounts', ['getLoginNotification', 'getSignUpMode']),
+  },
   methods: {
-    ...mapMutations(['setUserInfo']),
+    ...mapMutations('accounts', ['setLoginNotification', 'setSignUpMode']),
+    ...mapActions('accounts', ['setUserInfo', 'checkIfAlreadyExists']),
     async signUpWithServer() {
       const { username, password, confirmPassword } = this;
 
-      if (password != confirmPassword) return (this.showAlert = true);
+      if (password != confirmPassword)
+        return this.setLoginNotification('Password fo not match!');
 
-      this.showAlert = false;
+      this.setLoginNotification(null);
 
-      const response = await axios({
+      const { data } = await axios({
         method: 'post',
-        baseURL: process.env.VUE_APP_SERVER_URL,
         url: '/accounts/server/signUp',
         data: { username, password },
       });
 
-      const { userId, token } = response;
-
-      this.setUserInfo({
-        accessId: userId,
-        accessToken: token,
-        accessMode: 'SERVER',
-      });
+      if (data.success) {
+        this.password = null;
+        this.confirmPassword = null;
+        this.setSignUpMode(false);
+      } else this.setLoginNotification(data.message);
     },
     async signInWithServer() {
-      const { username, password } = this;
-      const response = await axios({
+      const { username, password, rememberMe } = this;
+
+      const { data } = await axios({
         method: 'post',
-        baseURL: process.env.VUE_APP_SERVER_URL,
         url: '/accounts/server/signIn',
         data: { username, password },
       });
 
-      const { userId, token } = response;
+      const { success, token } = data;
 
-      this.setUserInfo({
-        accessId: userId,
-        accessToken: token,
-        accessMode: 'SERVER',
-      });
+      if (success) {
+        this.setLoginNotification(null);
+
+        this.setUserInfo({
+          user: {
+            'access-token': token,
+            'access-mode': 'SERVER',
+          },
+          rememberMe,
+        });
+      } else this.setLoginNotification(data.message);
     },
     signInWithGoogle() {
+      const { rememberMe } = this;
       this.$gAuth
         .signIn()
         .then(GoogleUser => {
-          console.log(GoogleUser.getId());
+          console.log('rememberMe', rememberMe);
           this.setUserInfo({
-            accessId: GoogleUser.getId(),
-            accessToken: GoogleUser.getAuthResponse().access_token,
-            accessMode: 'GOOGLE',
+            user: {
+              'access-social-id': GoogleUser.getId(),
+              'access-token': GoogleUser.getAuthResponse().access_token,
+              'access-mode': 'GOOGLE',
+            },
+            rememberMe,
           });
         })
         .catch(error => {
@@ -204,15 +230,19 @@ export default {
         });
     },
     signInWithFacebook() {
+      const { rememberMe } = this;
       window.FB.login(response => {
         const {
           authResponse: { accessToken, userID },
         } = response;
 
         this.setUserInfo({
-          accessId: userID,
-          accessToken,
-          accessMode: 'FACEBOOK',
+          user: {
+            'access-social-id': userID,
+            'access-token': accessToken,
+            'access-mode': 'FACEBOOK',
+          },
+          rememberMe,
         });
       }, this.params);
     },
