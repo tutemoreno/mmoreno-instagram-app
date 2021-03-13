@@ -19,11 +19,6 @@ export default {
   },
   actions: {
     async setUserInfo({ commit }, { user, rememberMe }) {
-      axios.defaults.headers.common = {
-        ...axios.defaults.headers.common,
-        ...user,
-      };
-
       if (user['access-mode'] != 'SERVER') {
         const { data } = await axios({
           headers: user,

@@ -77,9 +77,11 @@
 </template>
 
 <script>
+import { mapGetters } from 'vuex';
 import Post from '@/components/Post.vue';
 import Modal from '@/components/Modal.vue';
 import axios from 'axios';
+import { v1 } from 'uuid';
 
 export default {
   name: 'Home',
@@ -153,6 +155,12 @@ export default {
       ],
     };
   },
+  async created() {
+    await this.$store.dispatch('posts/refresh');
+  },
+  computed: {
+    ...mapGetters('posts', ['getPosts']),
+  },
   methods: {
     drop(e) {
       this.file = e.dataTransfer.files[0];
@@ -166,6 +174,7 @@ export default {
 
       formData.append('file', this.file);
       formData.append('description', this.description);
+      formData.append('uuid', v1());
 
       try {
         const {

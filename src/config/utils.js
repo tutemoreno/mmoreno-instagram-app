@@ -8,12 +8,8 @@ export const getStore = name => {
   return JSON.parse(sessionStorage.getItem(name) || localStorage.getItem(name));
 };
 
-export const removeItem = name => {
-  return localStorage.removeItem(name);
-};
-
-export const isValidEmail = value => {
-  return value && !/^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,64}$/i.test(value)
-    ? false
-    : true;
+export const removeStore = name => {
+  localStorage.removeItem(name);
+  sessionStorage.removeItem(name);
+  return;
 };

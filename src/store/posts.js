@@ -1,14 +1,25 @@
 import axios from 'axios';
 
-import { getStore, setStore } from '@/config/utils';
-
 export default {
   namespaced: true,
   state: {
     posts: [],
   },
-  mutations: {},
-  actions: {},
+  mutations: {
+    setPosts(state, posts) {
+      state.posts = posts;
+    },
+  },
+  actions: {
+    async refresh({ commit }) {
+      const { data } = await axios({
+        method: 'get',
+        url: '/posts',
+      });
+
+      return commit('setPosts', data.posts);
+    },
+  },
   getters: {
     getPosts(state) {
       return state.posts;

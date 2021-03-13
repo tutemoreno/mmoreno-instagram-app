@@ -3,27 +3,34 @@ import App from './App.vue';
 import router from './router';
 import store from './store';
 
-import { getStore } from '@/config/utils';
+import { getStore, removeStore } from '@/config/utils';
 import axios from 'axios';
 axios.defaults.baseURL = process.env.VUE_APP_SERVER_URL;
-axios.defaults.headers.common = {
-  ...axios.defaults.headers.common,
-  ...getStore('mmoreno-app-user'),
-};
+// axios.defaults.headers.common = {
+//   ...axios.defaults.headers.common,
+//   ...getStore('mmoreno-app-user'),
+// };
 
-// axios.interceptors.request.use(
-//   config => {
-//     const token = localStorageService.getAccessToken();
-//     if (token) {
-//       config.headers['Authorization'] = 'Bearer ' + token;
-//     }
-//     // config.headers['Content-Type'] = 'application/json';
-//     return config;
-//   },
-//   error => {
-//     Promise.reject(error);
-//   }
-// );
+axios.interceptors.request.use(
+  config => {
+    config.headers = { ...config.headers, ...getStore('mmoreno-app-user') };
+
+    return config;
+  },
+  error => {
+    Promise.reject(error);
+  }
+);
+axios.interceptors.response.use(
+  response => {
+    return response;
+  },
+  error => {
+    if (error.response.status == 401) removeStore('mmoreno-app-user');
+    router.push('/login');
+    Promise.reject(error);
+  }
+);
 
 import jQuery from 'jquery';
 window.$ = jQuery;
