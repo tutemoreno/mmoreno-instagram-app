@@ -1,10 +1,6 @@
 <template>
   <div class="card" style="width: 18rem;">
-    <img
-      src="https://instagram.faep9-2.fna.fbcdn.net/v/t51.2885-15/e35/117680934_672528716694659_3050226877422797306_n.jpg?tp=1&_nc_ht=instagram.faep9-2.fna.fbcdn.net&_nc_cat=111&_nc_ohc=UTgVXfkfBgsAX9gcBJ7&oh=211a9bc8a5bf230a3ea4ba0c4a94eca7&oe=606CBDEF"
-      class="card-img-top"
-      alt=""
-    />
+    <img id="imgCard" :src="getImage" class="card-img-top" alt="" />
 
     <div class="container">
       <div
@@ -25,7 +21,7 @@
       </div>
       <div class="row">
         <span class="col-8 text-start">{{ this.timeago }}</span>
-        <span class="col-4 text-end">{{ post.likes }} Likes</span>
+        <span class="col-4 text-end">{{ post.likes.length }} Likes</span>
       </div>
       <div class="card-body row">
         <!-- <h5 class="card-title">Card title</h5> -->
@@ -39,6 +35,7 @@
 
 <script>
 import { distanceInWordsToNow } from 'date-fns';
+import axios from 'axios';
 
 export default {
   name: 'Post',
@@ -47,11 +44,36 @@ export default {
       type: Object,
     },
   },
+  data() {
+    return {
+      fckImg: null,
+    };
+  },
+  async created() {
+    const response = await axios.get(this.imageURL, {
+      responseType: 'arraybuffer',
+    });
+    console.log('[RESPONSE]', response);
+    const imgBlob = new File([response.data], 'asdasd123', {
+      type: 'image/jpg',
+    });
 
+    // new File(Buffer.from(response.data), this.post._id);
+
+    this.fckImg = URL.createObjectURL(imgBlob);
+  },
   computed: {
+    getImage() {
+      console.log(this.fckImg);
+      return this.fckImg;
+    },
+    imageURL() {
+      return `${process.env.VUE_APP_SERVER_URL}/posts/${this.post._id}`;
+    },
     timeago() {
-      const { sysOn } = this.post;
-      return distanceInWordsToNow(sysOn, { includeSeconds: true });
+      return distanceInWordsToNow(this.post.createdAt, {
+        includeSeconds: true,
+      });
     },
   },
 };

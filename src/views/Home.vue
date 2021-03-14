@@ -20,139 +20,33 @@
     <div class="row">
       <div
         class="col-12 col-xl-4 mb-3 d-flex justify-content-center"
-        v-for="post in posts"
+        v-for="post in getPosts"
         :key="post.id"
       >
         <Post :post="post" />
       </div>
     </div>
-    <Modal
+    <Uploader
+      :file="file"
+      :uploadedFileUrl="uploadedFileUrl"
       id="uploadModal"
-      data-bs-backdrop="static"
-      data-bs-keyboard="false"
-      modalSize="modal-xl"
-    >
-      <template #header>
-        <h5 class="modal-title mx-auto">
-          New Post
-        </h5>
-      </template>
-      <template #body>
-        <form class="container row">
-          <div class="col-6">
-            <img :src="uploadedFileUrl" class="img-fluid rounded" alt="" />
-          </div>
-          <div class="row col-6">
-            <div class="col-12 mb-3">
-              <textarea
-                class="form-control"
-                v-model="description"
-                placeholder="Description"
-                style="height: 100%"
-              ></textarea>
-            </div>
-            <div
-              class="col-12 d-flex justify-content-center align-items-center"
-            >
-              <button
-                type="button"
-                class="btn btn-primary btn-lg col-3 mx-3"
-                @click="uploadFile"
-              >
-                Post
-              </button>
-              <button
-                type="button"
-                class="btn btn-danger btn-lg col-3 mx-3"
-                data-bs-dismiss="modal"
-              >
-                Close
-              </button>
-            </div>
-          </div>
-        </form>
-      </template>
-    </Modal>
+    />
   </div>
 </template>
 
 <script>
 import { mapGetters } from 'vuex';
 import Post from '@/components/Post.vue';
-import Modal from '@/components/Modal.vue';
-import axios from 'axios';
-import { v1 } from 'uuid';
+import Uploader from '@/components/Uploader.vue';
 
 export default {
   name: 'Home',
-  components: { Post, Modal },
+  components: { Post, Uploader },
   data() {
     return {
       file: null,
       uploadedFileUrl: null,
       description: null,
-      posts: [
-        {
-          id: 1,
-          description: 'adksljfalsfñlkjshhdfkjHSDFFKJhsjkf',
-          likes: 0,
-          sysOn: new Date(),
-        },
-        {
-          id: 2,
-          description: 'adksljfalsfñlkjshhdfkjHSDFFKJhsjkf',
-          likes: 0,
-          sysOn: new Date(),
-        },
-        {
-          id: 3,
-          description: 'adksljfalsfñlkjshhdfkjHSDFFKJhsjkf',
-          likes: 0,
-          sysOn: new Date(),
-        },
-        {
-          id: 4,
-          description: 'adksljfalsfñlkjshhdfkjHSDFFKJhsjkf',
-          likes: 0,
-          sysOn: new Date(),
-        },
-        {
-          id: 5,
-          description: 'adksljfalsfñlkjshhdfkjHSDFFKJhsjkf',
-          likes: 0,
-          sysOn: new Date(),
-        },
-        {
-          id: 6,
-          description: 'adksljfalsfñlkjshhdfkjHSDFFKJhsjkf',
-          likes: 0,
-          sysOn: new Date(),
-        },
-        {
-          id: 7,
-          description: 'adksljfalsfñlkjshhdfkjHSDFFKJhsjkf',
-          likes: 0,
-          sysOn: new Date(),
-        },
-        {
-          id: 8,
-          description: 'adksljfalsfñlkjshhdfkjHSDFFKJhsjkf',
-          likes: 0,
-          sysOn: new Date(),
-        },
-        {
-          id: 9,
-          description: 'adksljfalsfñlkjshhdfkjHSDFFKJhsjkf',
-          likes: 0,
-          sysOn: new Date(),
-        },
-        {
-          id: 10,
-          description: 'adksljfalsfñlkjshhdfkjHSDFFKJhsjkf',
-          likes: 0,
-          sysOn: new Date(),
-        },
-      ],
     };
   },
   async created() {
@@ -167,32 +61,9 @@ export default {
 
       this.uploadedFileUrl = URL.createObjectURL(this.file);
 
+      console.log(this.uploadedFileUrl);
+
       $('#uploadModal').modal('show');
-    },
-    async uploadFile() {
-      const formData = new FormData();
-
-      formData.append('file', this.file);
-      formData.append('description', this.description);
-      formData.append('uuid', v1());
-
-      try {
-        const {
-          data: { file },
-        } = await axios({
-          headers: { 'Content-Type': 'multipart/form-data' },
-          baseURL: process.env.VUE_APP_SERVER_URL,
-          method: 'post',
-          url: 'uploads',
-          data: formData,
-        });
-
-        if (file) console.log('success upload');
-
-        $('#uploadModal').modal('hide');
-      } catch (error) {
-        console.log('[ERROR_UPLOADING]', error);
-      }
     },
   },
 };

@@ -154,12 +154,13 @@ export default {
     };
   },
   mounted() {
-    $('#signInModal').modal({
-      backdrop: 'static',
-      keyboard: false,
-      focus: true,
-    });
-    $('#signInModal').modal('show');
+    $('#signInModal')
+      .modal({
+        backdrop: 'static',
+        keyboard: false,
+        focus: true,
+      })
+      .modal('show');
   },
   computed: {
     ...mapGetters('accounts', ['getLoginNotification', 'getSignUpMode']),
@@ -200,7 +201,7 @@ export default {
 
       if (success) {
         this.setLoginNotification(null);
-
+        $('#signInModal').modal('hide');
         this.setUserInfo({
           user: {
             'access-token': token,
@@ -215,7 +216,7 @@ export default {
       this.$gAuth
         .signIn()
         .then(GoogleUser => {
-          console.log('rememberMe', rememberMe);
+          $('#signInModal').modal('hide');
           this.setUserInfo({
             user: {
               'access-social-id': GoogleUser.getId(),
@@ -235,7 +236,7 @@ export default {
         const {
           authResponse: { accessToken, userID },
         } = response;
-
+        $('#signInModal').modal('hide');
         this.setUserInfo({
           user: {
             'access-social-id': userID,
