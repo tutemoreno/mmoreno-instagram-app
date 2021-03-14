@@ -1,5 +1,5 @@
+import router from '../router';
 import axios from 'axios';
-import router from '@/router';
 
 import { getStore, setStore } from '@/config/utils';
 
@@ -18,21 +18,6 @@ export default {
     },
   },
   actions: {
-    async setUserInfo({ commit }, { user, rememberMe }) {
-      if (user['access-mode'] != 'SERVER') {
-        const { data } = await axios({
-          headers: user,
-          method: 'post',
-          url: '/accounts/social/signIn',
-        });
-
-        if (!data.success) return commit('setLoginNotification', data.message);
-      }
-
-      setStore('mmoreno-app-user', user, rememberMe);
-
-      router.push('/home');
-    },
     async checkIfAlreadyExists({ commit }, username) {
       const { data } = await axios({
         method: 'post',
@@ -40,9 +25,22 @@ export default {
         data: { username },
       });
 
-      console.log(data);
-
       commit('setLoginNotification', data.exists ? data.message : null);
+    },
+    async signIn({ commit }, options) {
+      const { data, type, rememberMe } = options;
+
+      const response = await axios({
+        method: 'post',
+        url: `/accounts/${type}/signIn`,
+        data,
+      });
+
+      if (response.status == 200) {
+        options.didLoggedIn();
+        setStore('mmoreno-app-user', response.data, rememberMe);
+        router.push('/');
+      } else commit('setLoginNotification', response.data.message);
     },
   },
   getters: {

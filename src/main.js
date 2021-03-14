@@ -6,14 +6,15 @@ import store from './store';
 import { getStore, removeStore } from '@/config/utils';
 import axios from 'axios';
 axios.defaults.baseURL = process.env.VUE_APP_SERVER_URL;
-// axios.defaults.headers.common = {
-//   ...axios.defaults.headers.common,
-//   ...getStore('mmoreno-app-user'),
-// };
-
 axios.interceptors.request.use(
   config => {
-    config.headers = { ...config.headers, ...getStore('mmoreno-app-user') };
+    const store = getStore('mmoreno-app-user');
+    if (store) {
+      config.headers = {
+        ...config.headers,
+        authorization: store.token,
+      };
+    }
 
     return config;
   },

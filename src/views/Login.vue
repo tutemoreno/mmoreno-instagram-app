@@ -167,7 +167,10 @@ export default {
   },
   methods: {
     ...mapMutations('accounts', ['setLoginNotification', 'setSignUpMode']),
-    ...mapActions('accounts', ['setUserInfo', 'checkIfAlreadyExists']),
+    ...mapActions('accounts', ['signIn', 'checkIfAlreadyExists']),
+    didLoggedIn() {
+      $('#signInModal').modal('hide');
+    },
     async signUpWithServer() {
       const { username, password, confirmPassword } = this;
 
@@ -176,54 +179,41 @@ export default {
 
       this.setLoginNotification(null);
 
-      const { data } = await axios({
+      const response = await axios({
         method: 'post',
         url: '/accounts/server/signUp',
         data: { username, password },
       });
 
-      if (data.success) {
+      if (response.status == 200) {
         this.password = null;
         this.confirmPassword = null;
+
         this.setSignUpMode(false);
-      } else this.setLoginNotification(data.message);
+      } else this.setLoginNotification(response.data.message);
     },
     async signInWithServer() {
       const { username, password, rememberMe } = this;
 
-      const { data } = await axios({
-        method: 'post',
-        url: '/accounts/server/signIn',
+      this.signIn({
         data: { username, password },
+        type: 'server',
+        rememberMe,
+        didLoggedIn: this.didLoggedIn,
       });
-
-      const { success, token } = data;
-
-      if (success) {
-        this.setLoginNotification(null);
-        $('#signInModal').modal('hide');
-        this.setUserInfo({
-          user: {
-            'access-token': token,
-            'access-mode': 'SERVER',
-          },
-          rememberMe,
-        });
-      } else this.setLoginNotification(data.message);
     },
     signInWithGoogle() {
-      const { rememberMe } = this;
       this.$gAuth
         .signIn()
         .then(GoogleUser => {
-          $('#signInModal').modal('hide');
-          this.setUserInfo({
-            user: {
-              'access-social-id': GoogleUser.getId(),
-              'access-token': GoogleUser.getAuthResponse().access_token,
-              'access-mode': 'GOOGLE',
+          this.signIn({
+            data: {
+              token: GoogleUser.getAuthResponse().access_token,
+              userId: GoogleUser.getId(),
             },
-            rememberMe,
+            type: 'google',
+            rememberMe: this.rememberMe,
+            didLoggedIn: this.didLoggedIn,
           });
         })
         .catch(error => {
@@ -231,19 +221,16 @@ export default {
         });
     },
     signInWithFacebook() {
-      const { rememberMe } = this;
       window.FB.login(response => {
         const {
           authResponse: { accessToken, userID },
         } = response;
-        $('#signInModal').modal('hide');
-        this.setUserInfo({
-          user: {
-            'access-social-id': userID,
-            'access-token': accessToken,
-            'access-mode': 'FACEBOOK',
-          },
-          rememberMe,
+
+        this.signIn({
+          data: { token: accessToken, userId: userID },
+          type: 'facebook',
+          rememberMe: this.rememberMe,
+          didLoggedIn: this.didLoggedIn,
         });
       }, this.params);
     },
