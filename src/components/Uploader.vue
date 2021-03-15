@@ -71,14 +71,13 @@ export default {
       formData.append('uuid', v1());
 
       try {
-        const response = await axios({
-          // headers: { 'Content-Type': 'multipart/form-data' },
+        await axios({
           method: 'post',
           url: 'posts',
           data: formData,
         });
 
-        console.log(response);
+        this.description = null;
 
         $('#uploadModal').modal('hide');
       } catch (error) {
