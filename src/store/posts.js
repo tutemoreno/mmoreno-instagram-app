@@ -6,7 +6,7 @@ export default {
     posts: [],
     currentPage: 1,
     lastPage: 1,
-    perPage: 3,
+    perPage: 6,
     pages: [],
   },
   mutations: {

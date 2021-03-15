@@ -98,12 +98,6 @@ export default {
       'setPreviousPage',
       'setNextPage',
     ]),
-    paginate() {
-      const { page, perPage } = this;
-
-      let from = page * perPage - perPage,
-        to = page * perPage;
-    },
     drop(e) {
       this.file = e.dataTransfer.files[0];
 
