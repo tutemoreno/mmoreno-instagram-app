@@ -70,15 +70,28 @@ export default {
       image: null,
     };
   },
-  async created() {
+  async mounted() {
     const response = await axios.get(this.imageURL, {
       responseType: 'blob',
     });
 
     this.image = URL.createObjectURL(response.data);
+    console.log(this.image);
+  },
+  watch: {
+    imageURL: function(url) {
+      this.fetchImage(url);
+    },
   },
   methods: {
     ...mapActions('posts', ['didLike']),
+    async fetchImage(url) {
+      const response = await axios.get(url, {
+        responseType: 'blob',
+      });
+
+      this.image = URL.createObjectURL(response.data);
+    },
   },
   computed: {
     imageURL() {
