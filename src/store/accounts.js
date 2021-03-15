@@ -28,11 +28,11 @@ export default {
       commit('setLoginNotification', data.exists ? data.message : null);
     },
     async signIn({ commit }, options) {
-      const { data, type, rememberMe } = options;
+      const { data, mode, rememberMe } = options;
 
       const response = await axios({
         method: 'post',
-        url: `/accounts/${type}/signIn`,
+        url: `/accounts/${mode}/signIn`,
         data,
       });
 

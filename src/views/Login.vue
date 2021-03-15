@@ -197,7 +197,7 @@ export default {
 
       this.signIn({
         data: { username, password },
-        type: 'server',
+        mode: 'server',
         rememberMe,
         didLoggedIn: this.didLoggedIn,
       });
@@ -211,7 +211,7 @@ export default {
               token: GoogleUser.getAuthResponse().access_token,
               userId: GoogleUser.getId(),
             },
-            type: 'google',
+            mode: 'google',
             rememberMe: this.rememberMe,
             didLoggedIn: this.didLoggedIn,
           });
@@ -228,7 +228,7 @@ export default {
 
         this.signIn({
           data: { token: accessToken, userId: userID },
-          type: 'facebook',
+          mode: 'facebook',
           rememberMe: this.rememberMe,
           didLoggedIn: this.didLoggedIn,
         });
